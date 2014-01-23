@@ -1334,8 +1334,7 @@ command_k( char *path_config, int depth )
 	    continue;
 	}
 	if ( strcmp( av[ 0 ], "@include" ) == 0 ) {
-	    depth++;
-	    if ( depth > RADMIND_MAX_INCLUDE_DEPTH ) {
+	    if ( depth >= RADMIND_MAX_INCLUDE_DEPTH ) {
 		syslog( LOG_ERR, "%s: line %d: include %s exceeds max depth",
 			path_config, linenum, av[ 1 ] );
 		goto command_k_done;
@@ -1350,7 +1349,7 @@ command_k( char *path_config, int depth )
 		    continue;
 		}
 	    }
-	    if ( command_k( av[ 1 ], depth ) != 0 ) {
+	    if ( command_k( av[ 1 ], depth + 1 ) != 0 ) {
 		continue;
 	    }
 
