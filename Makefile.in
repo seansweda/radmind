@@ -99,6 +99,7 @@ LSORT_OBJ=     version.o lsort.o pathcmp.o code.o argcargv.o
 all : ${TARGETS}
 
 version.o : version.c
+	git describe --dirty --tags --always --long > VERSION
 	${CC} ${CFLAGS} \
 		-DVERSION=\"`cat ${srcdir}/VERSION`\" \
 		-c ${srcdir}/version.c
