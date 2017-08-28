@@ -70,6 +70,7 @@ struct tran {
     char                t_prepath[ MAXPATHLEN ]; /* for order check */
     char		t_tran_root[ MAXPATHLEN ];
     char		t_file_root[ MAXPATHLEN ];
+    char		t_xattr_root[ MAXPATHLEN ];
     char		t_tran_name[ MAXPATHLEN ];
     char                *t_line;
     char                t_tline[ 2 * MAXPATHLEN ];
@@ -253,6 +254,7 @@ main( int argc, char **argv )
     char		*radmind_path = _RADMIND_PATH;
     char		cwd[ MAXPATHLEN ];
     char		file_root[ MAXPATHLEN ];
+    char		xattr_root[ MAXPATHLEN ];
     char		tran_root[ MAXPATHLEN ];
     char		tran_name[ MAXPATHLEN ];
     char		temp[ MAXPATHLEN ];
@@ -371,7 +373,8 @@ main( int argc, char **argv )
 	trans[ i ]->t_num = i;
 	trans[ i ]->t_path = argv[ i + optind ];
 
-	if ( get_root( radmind_path, trans[ i ]->t_path, trans[ i ]->t_file_root,
+	if ( get_root( radmind_path, trans[ i ]->t_path,
+		trans[ i ]->t_file_root, trans[ i ]->t_xattr_root,
 		trans[ i ]->t_tran_root, trans[ i ]->t_tran_name ) != 0 ) {
 	    exit( 2 );
 	}
@@ -435,7 +438,8 @@ main( int argc, char **argv )
 	    }
 	    strcpy( cwd, temp );
 	}
-	if ( get_root( radmind_path, cwd, file_root, tran_root, tran_name ) != 0 ) {
+	if ( get_root( radmind_path, cwd, file_root, xattr_root,
+		tran_root, tran_name ) != 0 ) {
 	    exit( 2 );
 	}
 

@@ -47,6 +47,7 @@ AC_CHECK_SIZEOF(off_t)
 
 # check early to make any required changes to environment for following tests.
 CHECK_UNIVERSAL_BINARIES
+CHECK_XATTR
 
 # Checks for libraries.
 AC_CHECK_LIB(c, inet_aton, libc_inet_aton=yes) 
