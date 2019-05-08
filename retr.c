@@ -31,6 +31,7 @@
 
 #include <snet.h>
 
+#include "openssl_compat.h" // Compatibility shims for OpenSSL < 1.1.0
 #include "applefile.h"
 #include "connect.h"
 #include "cksum.h"
@@ -75,7 +76,7 @@ retr( SNET *sn, char *pathdesc, char *path, char *temppath, mode_t tempmode,
     char		buf[ 8192 ]; 
     ssize_t		rr;
     extern EVP_MD	*md;
-    EVP_MD_CTX		mdctx;
+    EVP_MD_CTX		*mdctx = EVP_MD_CTX_new();
     unsigned char	md_value[ EVP_MAX_MD_SIZE ];
     char		cksum_b64[ SZ_BASE64_E( EVP_MAX_MD_SIZE ) ];
 
@@ -85,7 +86,7 @@ retr( SNET *sn, char *pathdesc, char *path, char *temppath, mode_t tempmode,
 	    fprintf( stderr, "%s\n", pathdesc );
 	    return( 1 );
 	}
-	EVP_DigestInit( &mdctx, md );
+	EVP_DigestInit( mdctx, md );
     }
 
     if ( verbose ) printf( ">>> RETR %s\n", pathdesc );
@@ -166,7 +167,7 @@ retr( SNET *sn, char *pathdesc, char *path, char *temppath, mode_t tempmode,
 	    goto error2;
 	}
 	if ( cksum ) {
-	    EVP_DigestUpdate( &mdctx, buf, (unsigned int)rr );
+	    EVP_DigestUpdate( mdctx, buf, (unsigned int)rr );
 	}
 	if ( dodots ) { putc( '.', stdout ); fflush( stdout ); }
 	size -= rr;
@@ -198,8 +199,9 @@ retr( SNET *sn, char *pathdesc, char *path, char *temppath, mode_t tempmode,
 
     /* cksum file */
     if ( cksum ) {
-	EVP_DigestFinal( &mdctx, md_value, &md_len );
+	EVP_DigestFinal( mdctx, md_value, &md_len );
 	base64_e( md_value, md_len, cksum_b64 );
+	EVP_MD_CTX_free(mdctx);
 	if ( strcmp( trancksum, cksum_b64 ) != 0 ) {
 	    fprintf( stderr, "line %d: checksum in transcript does not match "
 		"checksum from server\n", linenum );
@@ -247,7 +249,7 @@ retr_applefile( SNET *sn, char *pathdesc, char *path, char *temppath,
     struct as_entry		ae_ents[ 3 ]; 
     struct timeval		tv;
     extern EVP_MD       	*md;
-    EVP_MD_CTX   	       	mdctx;
+    EVP_MD_CTX   	       	*mdctx;
     unsigned char       	md_value[ EVP_MAX_MD_SIZE ];
     char		       	cksum_b64[ SZ_BASE64_E( EVP_MAX_MD_SIZE ) ];
 
@@ -257,7 +259,7 @@ retr_applefile( SNET *sn, char *pathdesc, char *path, char *temppath,
 	    fprintf( stderr, "%s\n", pathdesc );
             return( 1 );
         }
-        EVP_DigestInit( &mdctx, md );
+        EVP_DigestInit( mdctx, md );
     }
 
     if ( verbose ) printf( ">>> RETR %s\n", pathdesc );
@@ -317,7 +319,7 @@ retr_applefile( SNET *sn, char *pathdesc, char *path, char *temppath,
 	return( -1 );
     }
     if ( cksum ) {
-	EVP_DigestUpdate( &mdctx, (char *)&ah, (unsigned int)rc );
+	EVP_DigestUpdate( mdctx, (char *)&ah, (unsigned int)rc );
     }
 
     /* name temp file */
@@ -374,7 +376,7 @@ retr_applefile( SNET *sn, char *pathdesc, char *path, char *temppath,
     /* Should we check for valid ae_ents here? YES! */
 
     if ( cksum ) {
-	EVP_DigestUpdate( &mdctx, (char *)&ae_ents, (unsigned int)rc );
+	EVP_DigestUpdate( mdctx, (char *)&ae_ents, (unsigned int)rc );
     }
     if ( dodots ) { putc( '.', stdout ); fflush( stdout ); }
 
@@ -399,7 +401,7 @@ retr_applefile( SNET *sn, char *pathdesc, char *path, char *temppath,
 	goto error2;
     }
     if ( cksum ) {
-	EVP_DigestUpdate( &mdctx, finfo, (unsigned int)rc );
+	EVP_DigestUpdate( mdctx, finfo, (unsigned int)rc );
     }
     if ( dodots ) { putc( '.', stdout ); fflush( stdout ); }
     size -= rc;
@@ -449,7 +451,7 @@ retr_applefile( SNET *sn, char *pathdesc, char *path, char *temppath,
 		goto error3;
 	    }
 	    if ( cksum ) {
-		EVP_DigestUpdate( &mdctx, buf, (unsigned int)rc );
+		EVP_DigestUpdate( mdctx, buf, (unsigned int)rc );
 	    }
 	    if ( dodots ) { putc( '.', stdout ); fflush( stdout ); }
 	    if ( showprogress ) {
@@ -483,7 +485,7 @@ retr_applefile( SNET *sn, char *pathdesc, char *path, char *temppath,
 	}
 
 	if ( cksum ) {
-	    EVP_DigestUpdate( &mdctx, buf, (unsigned int)rc );
+	    EVP_DigestUpdate( mdctx, buf, (unsigned int)rc );
 	}
 	if ( dodots ) { putc( '.', stdout ); fflush( stdout); }
 	if ( showprogress ) {
@@ -524,8 +526,9 @@ retr_applefile( SNET *sn, char *pathdesc, char *path, char *temppath,
     if ( verbose ) printf( "<<< .\n" );
 
     if ( cksum ) {
-	EVP_DigestFinal( &mdctx, md_value, &md_len );
+	EVP_DigestFinal( mdctx, md_value, &md_len );
 	base64_e(( char*)&md_value, md_len, cksum_b64 );
+        EVP_MD_CTX_free(mdctx);
         if ( strcmp( trancksum, cksum_b64 ) != 0 ) {
 	    fprintf( stderr, "line %d: checksum in transcript does not match "
 		"checksum from server\n", linenum );
