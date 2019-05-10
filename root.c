@@ -102,7 +102,12 @@ get_root( char *radmind_path, char *path, char *file_root, char *xattr_root,
             }
 #endif /* ENABLE_XATTR */
         } else {
-            snprintf( file_root, MAXPATHLEN, "%s/../file", real_path );
+            if ( snprintf( file_root, MAXPATHLEN, "%s/../file",
+		    real_path ) >= MAXPATHLEN ) {
+		fprintf( stderr, "%s/../file: path too long\n",
+		    real_path);
+		return( -1);
+	    }
             snprintf( tran_root, MAXPATHLEN, "%s", real_path );
 #ifdef ENABLE_XATTR
 	    snprintf( xattr_root, MAXPATHLEN, "%s/../xattr", real_path );
