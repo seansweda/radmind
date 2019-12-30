@@ -65,9 +65,9 @@ update( char *path, char *displaypath, int present, int newfile,
     struct stat		*st;
     struct applefileinfo	*afinfo;
 #ifdef __APPLE__
-    char			fi_data[ FINFOLEN ];
+    unsigned char		fi_data[ SZ_BASE64_D( SZ_BASE64_E( FINFOLEN ) ) ];
     extern struct attrlist	setalist;
-    static char                 null_buf[ 32 ] = { 0 };
+    static char                 null_buf[ SZ_BASE64_D( SZ_BASE64_E( FINFOLEN ) ) ] = { 0 };
 #endif /* __APPLE__ */
 
     st = &rs->rs_stat;
@@ -148,7 +148,7 @@ update( char *path, char *displaypath, int present, int newfile,
 	    if ( setattrlist( path, &setalist,
 		    fi_data, FINFOLEN, FSOPT_NOFOLLOW ) != 0 ) {
 		fprintf( stderr,
-		    "retrieve %s failed: Could not set attributes\n", path );
+		    "retrieve %s failed: Could not set Finder Info attribute\n", path );
 		return( -1 );
 	    }
 	}

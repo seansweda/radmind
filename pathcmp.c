@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "pathcmp.h"
+#include "code.h"
 
     int
 pathcasecmp( const unsigned char *p1, const unsigned char *p2,
