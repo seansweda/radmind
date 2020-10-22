@@ -204,10 +204,10 @@ do_xcksum( char *path, char *cksum_b64, char *xname )
     char			*buf = NULL;
     unsigned int		md_len;
     extern EVP_MD		*md;
-    EVP_MD_CTX          	mdctx;
+    EVP_MD_CTX          	*mdctx = EVP_MD_CTX_new();
     unsigned char       	md_value[ EVP_MAX_MD_SIZE ];
 
-    EVP_DigestInit( &mdctx, md ); 
+    EVP_DigestInit( mdctx, md );
 
     /*
      * For now we're skipping Finder Info and Resource Fork, since our
@@ -222,9 +222,9 @@ fprintf( stderr, "xattr_get failed: %s, %s\n", path, xname );
 	return( -1 );
     }
 
-    EVP_DigestUpdate( &mdctx, buf, (unsigned int)xr );
+    EVP_DigestUpdate( mdctx, buf, (unsigned int)xr );
 
-    EVP_DigestFinal( &mdctx, md_value, &md_len );
+    EVP_DigestFinal( mdctx, md_value, &md_len );
     base64_e( md_value, md_len, cksum_b64 );
 
     return((off_t)xr );

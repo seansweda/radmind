@@ -574,7 +574,7 @@ retr_xattr( SNET *sn, char *pathdesc, char *path, char *xname,
     unsigned int	offset = 0;
     unsigned int	md_len;
     extern EVP_MD	*md;
-    EVP_MD_CTX		mdctx;
+    EVP_MD_CTX		*mdctx = EVP_MD_CTX_new();
     unsigned char	md_value[ EVP_MAX_MD_SIZE ];
     char		cksum_b64[ SZ_BASE64_E( EVP_MAX_MD_SIZE ) ];
 
@@ -584,7 +584,7 @@ retr_xattr( SNET *sn, char *pathdesc, char *path, char *xname,
 	    fprintf( stderr, "%s\n", pathdesc );
 	    return( 1 );
 	}
-	EVP_DigestInit( &mdctx, md );
+	EVP_DigestInit( mdctx, md );
     }
 
     if ( verbose ) printf( ">>> RETR %s\n", pathdesc );
@@ -667,8 +667,8 @@ retr_xattr( SNET *sn, char *pathdesc, char *path, char *xname,
     if ( verbose ) printf( "<<< .\n" );
 
     if ( cksum ) {
-	EVP_DigestUpdate( &mdctx, buf, (unsigned int)rr );
-	EVP_DigestFinal( &mdctx, md_value, &md_len );
+	EVP_DigestUpdate( mdctx, buf, (unsigned int)rr );
+	EVP_DigestFinal( mdctx, md_value, &md_len );
 	base64_e( md_value, md_len, cksum_b64 );
 	if ( strcmp( trancksum, cksum_b64 ) != 0 ) {
 	    fprintf( stderr, "line %d: checksum in transcript does not "

@@ -620,7 +620,7 @@ stor_xattr( SNET *sn, char *pathdesc, char *xpath, char *xname, off_t transize,
     unsigned int	offset = 0;
     unsigned int	md_len;
     extern EVP_MD	*md;
-    EVP_MD_CTX		mdctx;
+    EVP_MD_CTX		*mdctx = EVP_MD_CTX_new();
     unsigned char	md_value[ EVP_MAX_MD_SIZE ];
     char		cksum_b64[ SZ_BASE64_E( EVP_MAX_MD_SIZE ) ];
 
@@ -629,7 +629,7 @@ stor_xattr( SNET *sn, char *pathdesc, char *xpath, char *xname, off_t transize,
 	    fprintf( stderr, "line %d: No checksum listed\n", linenum );
 	    exit( 2 );
 	}
-	EVP_DigestInit( &mdctx, md );
+	EVP_DigestInit( mdctx, md );
     }
 
     /*
@@ -656,7 +656,7 @@ stor_xattr( SNET *sn, char *pathdesc, char *xpath, char *xname, off_t transize,
     }
 
     if ( cksum ) {
-	EVP_DigestUpdate( &mdctx, buf, (unsigned int)xr );
+	EVP_DigestUpdate( mdctx, buf, (unsigned int)xr );
     }
 
     /* tell server what to expect */
@@ -707,7 +707,7 @@ stor_xattr( SNET *sn, char *pathdesc, char *xpath, char *xname, off_t transize,
     if ( verbose ) fputs( "\n>>> .\n", stdout );
 
     if ( cksum ) {
-	EVP_DigestFinal( &mdctx, md_value, &md_len );
+	EVP_DigestFinal( mdctx, md_value, &md_len );
 	base64_e( md_value, md_len, cksum_b64 );
 	if ( strcmp( trancksum, cksum_b64 ) != 0 ) {
 	    fprintf( stderr, "line %d: checksum listed in transcript "
